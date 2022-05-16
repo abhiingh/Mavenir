@@ -1,0 +1,385 @@
+############################################################################################################################################
+1- Difference between kubia-rc.yaml and kubia-replicaset.yaml 
+What are the differences file-wise?
+
+Observation:
+1- kubia-rc.yaml file is having version v1 and kubia-replicaset.yanl us having version v1beta.
+2- Kubia.rc.yaml file is having kind ReplicationController and in kubia-replicaset.yaml file is having ReplicationSet.
+3- Kubia.rc.yaml file is having ControllerPort defined and in kubia-replicaset.yaml file is not having any port.
+4- kubia-rc.yaml file is not having matchlevel under selector and in kubia-replicaset.yaml file is having matchlevel under selector.
+
+############################################################################################################################################
+
+############################################################################################################################################
+2- Run the kubia-replicaset.yaml .
+
+Observation: Below are the execution steps of kubia-replicaset.yaml.
+
+[root@ip-172-31-21-197 04-controllers]# ls -ltr
+total 44
+-rw-r--r-- 1 root root 280 May 12 10:45 time-limited-batch-job.yaml
+drwxr-xr-x 2 root root  24 May 12 10:45 ssd-monitor
+-rw-r--r-- 1 root root 290 May 12 10:45 multi-completion-parallel-batch-job.yaml
+-rw-r--r-- 1 root root 273 May 12 10:45 multi-completion-batch-job.yaml
+drwxr-xr-x 2 root root  38 May 12 10:45 kubia-unhealthy
+-rw-r--r-- 1 root root 325 May 12 10:45 kubia-replicaset-matchexpressions.yaml
+-rw-r--r-- 1 root root 294 May 12 10:45 kubia-rc.yaml
+-rw-r--r-- 1 root root 197 May 12 10:45 kubia-liveness-probe.yaml
+-rw-r--r-- 1 root root 227 May 12 10:45 kubia-liveness-probe-initial-delay.yaml
+-rw-r--r-- 1 root root 371 May 12 10:45 cronjob.yaml
+-rw-r--r-- 1 root root 239 May 12 10:45 batch-job.yaml
+drwxr-xr-x 2 root root  24 May 12 10:45 batch-job
+-rw-r--r-- 1 root root 308 May 13 10:17 ssd-monitor-daemonset.yaml
+-rw-r--r-- 1 root root 261 May 16 13:25 kubia-replicaset.yaml
+[root@ip-172-31-21-197 04-controllers]# cat kubia-replicaset.yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: kubia
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kubia
+  template:
+    metadata:
+      labels:
+        app: kubia
+    spec:
+      containers:
+      - name: kubia
+        image: luksa/kubia
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME            READY   STATUS    RESTARTS   AGE
+kubia2-d6fkh    1/1     Running   0          19m
+kubia2-p7g5p    1/1     Running   0          19m
+kubia2-vtlkx    1/1     Running   0          19m
+mavenir-8llzt   1/1     Running   0          18m
+mavenir-ctfcp   1/1     Running   0          4h34m
+mavenir-ndxk2   1/1     Running   0          4h34m
+[root@ip-172-31-21-197 04-controllers]# kubectl apply -f kubia-replicaset.yaml
+replicaset.apps/kubia created
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME            READY   STATUS              RESTARTS   AGE
+kubia-6lqwv     0/1     ContainerCreating   0          3s
+kubia-n9rvb     0/1     ContainerCreating   0          3s
+kubia-sh4rl     0/1     ContainerCreating   0          3s
+kubia2-d6fkh    1/1     Running             0          19m
+kubia2-p7g5p    1/1     Running             0          19m
+kubia2-vtlkx    1/1     Running             0          19m
+mavenir-8llzt   1/1     Running             0          18m
+mavenir-ctfcp   1/1     Running             0          4h34m
+mavenir-ndxk2   1/1     Running             0          4h34m
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME            READY   STATUS    RESTARTS   AGE
+kubia-6lqwv     1/1     Running   0          15s
+kubia-n9rvb     1/1     Running   0          15s
+kubia-sh4rl     1/1     Running   0          15s
+kubia2-d6fkh    1/1     Running   0          19m
+kubia2-p7g5p    1/1     Running   0          19m
+kubia2-vtlkx    1/1     Running   0          19m
+mavenir-8llzt   1/1     Running   0          18m
+mavenir-ctfcp   1/1     Running   0          4h34m
+mavenir-ndxk2   1/1     Running   0          4h34m
+[root@ip-172-31-21-197 04-controllers]# kubectl delete pod kubia-6lqwv
+pod "kubia-6lqwv" deleted
+
+[root@ip-172-31-21-197 04-controllers]#
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME            READY   STATUS    RESTARTS   AGE
+kubia-n9rvb     1/1     Running   0          67s
+kubia-s8cb2     1/1     Running   0          41s
+kubia-sh4rl     1/1     Running   0          67s
+kubia2-d6fkh    1/1     Running   0          20m
+kubia2-p7g5p    1/1     Running   0          20m
+kubia2-vtlkx    1/1     Running   0          20m
+mavenir-8llzt   1/1     Running   0          19m
+mavenir-ctfcp   1/1     Running   0          4h35m
+mavenir-ndxk2   1/1     Running   0          4h35m
+[root@ip-172-31-21-197 04-controllers]# kubectl describe pod kubia-n9rvb
+Name:         kubia-n9rvb
+Namespace:    suhanya
+Priority:     0
+Node:         ip-172-31-21-197.ap-southeast-1.compute.internal/172.31.21.197
+Start Time:   Mon, 16 May 2022 17:58:11 +0000
+Labels:       app=kubia
+Annotations:  <none>
+Status:       Running
+IP:           192.168.46.100
+IPs:
+  IP:           192.168.46.100
+Controlled By:  ReplicaSet/kubia
+Containers:
+  kubia:
+    Container ID:   docker://37a5b7285e09ee9d084c1f0557d3004c4e7d5bd2a56a754ddef2e92b3f7bb2db
+    Image:          luksa/kubia
+    Image ID:       docker-pullable://luksa/kubia@sha256:3f28e304dc0f63dc30f273a4202096f0fa0d08510bd2ee7e1032ce600616de24
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Mon, 16 May 2022 17:58:20 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-nkx27 (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-nkx27:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-nkx27
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age   From                                                       Message
+  ----    ------     ----  ----                                                       -------
+  Normal  Scheduled  92s   default-scheduler                                          Successfully assigned suhanya/kubia-n9rvb to ip-172-31-21-197.ap-southeast-1.compute.internal
+  Normal  Pulling    90s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Pulling image "luksa/kubia"
+  Normal  Pulled     83s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Successfully pulled image "luksa/kubia"
+  Normal  Created    83s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Created container kubia
+  Normal  Started    83s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Started container kubia
+[root@ip-172-31-21-197 04-controllers]#
+[root@ip-172-31-21-197 04-controllers]#
+[root@ip-172-31-21-197 04-controllers]#
+[root@ip-172-31-21-197 04-controllers]#
+
+############################################################################################################################################
+
+############################################################################################################################################
+
+3- Identify what commands can be run after "kubectl apply...."
+
+Observation: kubectl apply -f <file>.yaml. Below commands can be run.
+
+[root@ip-172-31-21-197 04-controllers]# kubectl apply -f kubia-replicaset.yaml
+replicaset.apps/kubia created
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME            READY   STATUS              RESTARTS   AGE
+kubia-6lqwv     0/1     ContainerCreating   0          3s
+kubia-n9rvb     0/1     ContainerCreating   0          3s
+kubia-sh4rl     0/1     ContainerCreating   0          3s
+kubia2-d6fkh    1/1     Running             0          19m
+kubia2-p7g5p    1/1     Running             0          19m
+kubia2-vtlkx    1/1     Running             0          19m
+mavenir-8llzt   1/1     Running             0          18m
+mavenir-ctfcp   1/1     Running             0          4h34m
+mavenir-ndxk2   1/1     Running             0          4h34m
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME            READY   STATUS    RESTARTS   AGE
+kubia-6lqwv     1/1     Running   0          15s
+kubia-n9rvb     1/1     Running   0          15s
+kubia-sh4rl     1/1     Running   0          15s
+kubia2-d6fkh    1/1     Running   0          19m
+kubia2-p7g5p    1/1     Running   0          19m
+kubia2-vtlkx    1/1     Running   0          19m
+mavenir-8llzt   1/1     Running   0          18m
+mavenir-ctfcp   1/1     Running   0          4h34m
+mavenir-ndxk2   1/1     Running   0          4h34m
+[root@ip-172-31-21-197 04-controllers]# kubectl delete pod kubia-6lqwv
+pod "kubia-6lqwv" deleted
+
+[root@ip-172-31-21-197 04-controllers]#
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME            READY   STATUS    RESTARTS   AGE
+kubia-n9rvb     1/1     Running   0          67s
+kubia-s8cb2     1/1     Running   0          41s
+kubia-sh4rl     1/1     Running   0          67s
+kubia2-d6fkh    1/1     Running   0          20m
+kubia2-p7g5p    1/1     Running   0          20m
+kubia2-vtlkx    1/1     Running   0          20m
+mavenir-8llzt   1/1     Running   0          19m
+mavenir-ctfcp   1/1     Running   0          4h35m
+mavenir-ndxk2   1/1     Running   0          4h35m
+[root@ip-172-31-21-197 04-controllers]# kubectl describe pod kubia-n9rvb
+Name:         kubia-n9rvb
+Namespace:    suhanya
+Priority:     0
+Node:         ip-172-31-21-197.ap-southeast-1.compute.internal/172.31.21.197
+Start Time:   Mon, 16 May 2022 17:58:11 +0000
+Labels:       app=kubia
+Annotations:  <none>
+Status:       Running
+IP:           192.168.46.100
+IPs:
+  IP:           192.168.46.100
+Controlled By:  ReplicaSet/kubia
+Containers:
+  kubia:
+    Container ID:   docker://37a5b7285e09ee9d084c1f0557d3004c4e7d5bd2a56a754ddef2e92b3f7bb2db
+    Image:          luksa/kubia
+    Image ID:       docker-pullable://luksa/kubia@sha256:3f28e304dc0f63dc30f273a4202096f0fa0d08510bd2ee7e1032ce600616de24
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Mon, 16 May 2022 17:58:20 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-nkx27 (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-nkx27:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-nkx27
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age   From                                                       Message
+  ----    ------     ----  ----                                                       -------
+  Normal  Scheduled  92s   default-scheduler                                          Successfully assigned suhanya/kubia-n9rvb to ip-172-31-21-197.ap-southeast-1.compute.internal
+  Normal  Pulling    90s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Pulling image "luksa/kubia"
+  Normal  Pulled     83s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Successfully pulled image "luksa/kubia"
+  Normal  Created    83s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Created container kubia
+  Normal  Started    83s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Started container kubia
+[root@ip-172-31-21-197 04-controllers]#
+[root@ip-172-31-21-197 04-controllers]#
+[root@ip-172-31-21-197 04-controllers]#
+[root@ip-172-31-21-197 04-controllers]#
+
+############################################################################################################################################
+
+############################################################################################################################################
+
+4- Make a service over these pods (kubia-replicaset) and see if the service picks up the web-service within the pod ("You have hit....." message)
+
+Observation: Pod is picking up the web-service as service is deployed over pod.
+
+[root@ip-172-31-21-197 04-controllers]# cd ..
+[root@ip-172-31-21-197 kubernetes-training]# cd 05-services/
+[root@ip-172-31-21-197 05-services]# ls -ltr
+total 72
+-rw-r--r-- 1 root root 1675 May 12 10:45 tls.key
+-rw-r--r-- 1 root root 1115 May 12 10:45 tls.cert
+-rw-r--r-- 1 root root  156 May 12 10:45 kubia-svc.yaml
+-rw-r--r-- 1 root root  167 May 12 10:45 kubia-svc-publish-not-ready.yaml
+-rw-r--r-- 1 root root  176 May 12 10:45 kubia-svc-nodeport.yaml
+-rw-r--r-- 1 root root  217 May 12 10:45 kubia-svc-nodeport-onlylocal.yaml
+-rw-r--r-- 1 root root  196 May 12 10:45 kubia-svc-named-ports.yaml
+-rw-r--r-- 1 root root  164 May 12 10:45 kubia-svc-loadbalancer.yaml
+-rw-r--r-- 1 root root  157 May 12 10:45 kubia-svc-headless.yaml
+-rw-r--r-- 1 root root  158 May 12 10:45 kubia-svc-client-ip-session-affinity.yaml
+-rw-r--r-- 1 root root  261 May 12 10:45 kubia-replicaset.yaml
+-rw-r--r-- 1 root root  418 May 12 10:45 kubia-rc-readinessprobe.yaml
+-rw-r--r-- 1 root root  194 May 12 10:45 kubia-pod.yml
+-rw-r--r-- 1 root root  232 May 12 10:45 kubia-ingress.yaml
+-rw-r--r-- 1 root root  302 May 12 10:45 kubia-ingress-tls.yaml
+drwxr-xr-x 2 root root   96 May 12 10:45 ingress
+-rw-r--r-- 1 root root   93 May 12 10:45 external-service.yaml
+-rw-r--r-- 1 root root  149 May 12 10:45 external-service-externalname.yaml
+-rw-r--r-- 1 root root  161 May 12 10:45 external-service-endpoints.yaml
+[root@ip-172-31-21-197 05-services]# cat kubia-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubia2
+spec:
+  clusterIP: 10.99.10.99
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: kubia
+
+[root@ip-172-31-21-197 05-services]# kubectl apply -f kubia-svc.yaml
+service/kubia2 unchanged
+[root@ip-172-31-21-197 05-services]# kubectl get svc
+NAME     TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+kubia2   ClusterIP   10.99.10.99   <none>        80/TCP    10h
+[root@ip-172-31-21-197 05-services]# kubectl delete svc kubia2
+service "kubia2" deleted
+[root@ip-172-31-21-197 05-services]# kubectl get svc
+No resources found in suhanya namespace.
+[root@ip-172-31-21-197 05-services]# kubectl apply -f kubia-svc.yaml
+service/kubia2 created
+[root@ip-172-31-21-197 05-services]# kubectl get svc
+NAME     TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+kubia2   ClusterIP   10.99.10.99   <none>        80/TCP    5s
+[root@ip-172-31-21-197 05-services]# curl 10.99.10.99:80
+You've hit kubia2-vtlkx
+[root@ip-172-31-21-197 05-services]# curl 10.99.10.99:80
+You've hit kubia2-vtlkx
+[root@ip-172-31-21-197 05-services]# curl 10.99.10.99:80
+You've hit kubia2-vtlkx
+[root@ip-172-31-21-197 05-services]# kubectl get po --show-labels
+NAME            READY   STATUS    RESTARTS   AGE     LABELS
+kubia-n9rvb     1/1     Running   0          4m16s   app=kubia
+kubia-s8cb2     1/1     Running   0          3m50s   app=kubia
+kubia-sh4rl     1/1     Running   0          4m16s   app=kubia
+kubia2-d6fkh    1/1     Running   0          23m     app=kubia
+kubia2-p7g5p    1/1     Running   0          23m     app=kubia
+kubia2-vtlkx    1/1     Running   0          23m     app=kubia
+mavenir-8llzt   1/1     Running   0          22m     app=mavenir
+mavenir-ctfcp   1/1     Running   0          4h38m   app=mavenir
+mavenir-ndxk2   1/1     Running   0          4h38m   app=mavenir
+
+############################################################################################################################################
+
+############################################################################################################################################
+
+5-Negative Testing : change the labels of the pod and see if the service is still applied on those pods
+
+Observation: As we change the label of the pod, the pod will terminated and new pod will deployed with the old label.
+
+[root@ip-172-31-21-197 05-services]# kubectl label pod kubia-n9rvb app=mavenir --overwrite
+pod/kubia-n9rvb labeled
+[root@ip-172-31-21-197 05-services]# kubectl get pod
+NAME            READY   STATUS        RESTARTS   AGE
+kubia-2pd2v     1/1     Running       0          11s
+kubia-n9rvb     1/1     Terminating   0          5m5s
+kubia-s8cb2     1/1     Running       0          4m39s
+kubia-sh4rl     1/1     Running       0          5m5s
+kubia2-d6fkh    1/1     Running       0          24m
+kubia2-p7g5p    1/1     Running       0          24m
+kubia2-vtlkx    1/1     Running       0          24m
+mavenir-8llzt   1/1     Running       0          23m
+mavenir-ctfcp   1/1     Running       0          4h39m
+mavenir-ndxk2   1/1     Running       0          4h39m
+[root@ip-172-31-21-197 05-services]# kubectl get po --show-labels
+NAME            READY   STATUS        RESTARTS   AGE     LABELS
+kubia-2pd2v     1/1     Running       0          24s     app=kubia
+kubia-n9rvb     1/1     Terminating   0          5m18s   app=mavenir
+kubia-s8cb2     1/1     Running       0          4m52s   app=kubia
+kubia-sh4rl     1/1     Running       0          5m18s   app=kubia
+kubia2-d6fkh    1/1     Running       0          24m     app=kubia
+kubia2-p7g5p    1/1     Running       0          24m     app=kubia
+kubia2-vtlkx    1/1     Running       0          24m     app=kubia
+mavenir-8llzt   1/1     Running       0          23m     app=mavenir
+mavenir-ctfcp   1/1     Running       0          4h39m   app=mavenir
+mavenir-ndxk2   1/1     Running       0          4h39m   app=mavenir
+[root@ip-172-31-21-197 05-services]# kubectl get po --show-labels
+NAME            READY   STATUS    RESTARTS   AGE     LABELS
+kubia-2pd2v     1/1     Running   0          41s     app=kubia
+kubia-s8cb2     1/1     Running   0          5m9s    app=kubia
+kubia-sh4rl     1/1     Running   0          5m35s   app=kubia
+kubia2-d6fkh    1/1     Running   0          25m     app=kubia
+kubia2-p7g5p    1/1     Running   0          25m     app=kubia
+kubia2-vtlkx    1/1     Running   0          25m     app=kubia
+mavenir-8llzt   1/1     Running   0          23m     app=mavenir
+mavenir-ctfcp   1/1     Running   0          4h39m   app=mavenir
+mavenir-ndxk2   1/1     Running   0          4h39m   app=mavenir
+[root@ip-172-31-21-197 05-services]# curl 10.99.10.99:80
+You've hit kubia-2pd2v
+[root@ip-172-31-21-197 05-services]# curl 10.99.10.99:80
+You've hit kubia-s8cb2
+[root@ip-172-31-21-197 05-services]# curl 10.99.10.99:80
+You've hit kubia2-d6fkh
+[root@ip-172-31-21-197 05-services]#
+
+############################################################################################################################################
