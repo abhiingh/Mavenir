@@ -3,10 +3,9 @@
 What are the differences file-wise?
 
 Observation:
-1- kubia-rc.yaml file is having version v1 and kubia-replicaset.yanl us having version v1beta.
-2- Kubia.rc.yaml file is having kind ReplicationController and in kubia-replicaset.yaml file is having ReplicationSet.
-3- Kubia.rc.yaml file is having ControllerPort defined and in kubia-replicaset.yaml file is not having any port.
-4- kubia-rc.yaml file is not having matchlevel under selector and in kubia-replicaset.yaml file is having matchlevel under selector.
+1- Kubia.rc.yaml file is having kind ReplicationController and in kubia-replicaset.yaml file is having ReplicationSet.
+2- Kubia.rc.yaml file is having ControllerPort defined and in kubia-replicaset.yaml file is not having any port.
+3- kubia-rc.yaml file is not having matchlevel under selector and in kubia-replicaset.yaml file is having matchlevel under selector.
 
 ############################################################################################################################################
 
