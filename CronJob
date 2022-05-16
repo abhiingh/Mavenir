@@ -1,0 +1,437 @@
+############################################################################################################################################
+1- go to cronjob.yaml (/root/kubernetes-training/04-controllers)
+
+Observation:
+
+[root@ip-172-31-21-197 04-controllers]# ls -ltr
+total 44
+-rw-r--r-- 1 root root 280 May 12 10:45 time-limited-batch-job.yaml
+drwxr-xr-x 2 root root  24 May 12 10:45 ssd-monitor
+-rw-r--r-- 1 root root 290 May 12 10:45 multi-completion-parallel-batch-job.yaml
+-rw-r--r-- 1 root root 273 May 12 10:45 multi-completion-batch-job.yaml
+drwxr-xr-x 2 root root  38 May 12 10:45 kubia-unhealthy
+-rw-r--r-- 1 root root 325 May 12 10:45 kubia-replicaset-matchexpressions.yaml
+-rw-r--r-- 1 root root 294 May 12 10:45 kubia-rc.yaml
+-rw-r--r-- 1 root root 197 May 12 10:45 kubia-liveness-probe.yaml
+-rw-r--r-- 1 root root 227 May 12 10:45 kubia-liveness-probe-initial-delay.yaml
+-rw-r--r-- 1 root root 371 May 12 10:45 cronjob.yaml
+-rw-r--r-- 1 root root 239 May 12 10:45 batch-job.yaml
+drwxr-xr-x 2 root root  24 May 12 10:45 batch-job
+-rw-r--r-- 1 root root 308 May 13 10:17 ssd-monitor-daemonset.yaml
+-rw-r--r-- 1 root root 261 May 16 13:25 kubia-replicaset.yaml
+[root@ip-172-31-21-197 04-controllers]# cat cronjob.yaml
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: batch-job-every-fifteen-minutes
+spec:
+  schedule: "0,15,30,45 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: periodic-batch-job
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: main
+            image: luksa/batch-job
+[root@ip-172-31-21-197 04-controllers]#
+
+############################################################################################################################################
+
+############################################################################################################################################
+
+2- Open the file and change the 1st line to (apiVersion: batch/v1beta1).
+
+Observation: Changed the apiVersion.
+
+[root@ip-172-31-21-197 04-controllers]# cat cronjob.yaml
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: batch-job-every-fifteen-minutes
+spec:
+  schedule: "0,15,30,45 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: periodic-batch-job
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: main
+            image: luksa/batch-job
+[root@ip-172-31-21-197 04-controllers]#
+
+############################################################################################################################################
+
+############################################################################################################################################
+3- Run this file
+
+Observation:
+
+[root@ip-172-31-21-197 04-controllers]# kubectl apply -f cronjob.yaml
+cronjob.batch/batch-job-every-fifteen-minutes created
+[root@ip-172-31-21-197 04-controllers]# kubectl get cronjob batch-job-every-fifteen-minutes
+NAME                              SCHEDULE             SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+batch-job-every-fifteen-minutes   0,15,30,45 * * * *   False     0        <none>          12s
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods -n suhanya -owide
+NAME            READY   STATUS    RESTARTS   AGE     IP               NODE                                               NOMINATED NODE   READINESS GATES
+kubia-2pd2v     1/1     Running   0          18m     192.168.46.102   ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia-s8cb2     1/1     Running   0          22m     192.168.46.101   ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia-sh4rl     1/1     Running   0          23m     192.168.46.99    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia2-d6fkh    1/1     Running   0          42m     192.168.46.87    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia2-p7g5p    1/1     Running   0          42m     192.168.46.89    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia2-vtlkx    1/1     Running   0          42m     192.168.46.88    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+mavenir-8llzt   1/1     Running   0          41m     192.168.46.90    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+mavenir-ctfcp   1/1     Running   0          4h57m   192.168.46.85    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+mavenir-ndxk2   1/1     Running   0          4h57m   192.168.46.86    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods -n suhanya -owide
+NAME            READY   STATUS    RESTARTS   AGE     IP               NODE                                               NOMINATED NODE   READINESS GATES
+kubia-2pd2v     1/1     Running   0          18m     192.168.46.102   ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia-s8cb2     1/1     Running   0          23m     192.168.46.101   ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia-sh4rl     1/1     Running   0          23m     192.168.46.99    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia2-d6fkh    1/1     Running   0          43m     192.168.46.87    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia2-p7g5p    1/1     Running   0          43m     192.168.46.89    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia2-vtlkx    1/1     Running   0          43m     192.168.46.88    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+mavenir-8llzt   1/1     Running   0          41m     192.168.46.90    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+mavenir-ctfcp   1/1     Running   0          4h57m   192.168.46.85    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+mavenir-ndxk2   1/1     Running   0          4h57m   192.168.46.86    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-21-197 04-controllers]# kubectl get cronjob batch-job-every-fifteen-minutes
+NAME                              SCHEDULE             SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+batch-job-every-fifteen-minutes   0,15,30,45 * * * *   False     0        <none>          55s
+[root@ip-172-31-21-197 04-controllers]# kubectl get cronjob batch-job-every-fifteen-minutes
+NAME                              SCHEDULE             SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+batch-job-every-fifteen-minutes   0,15,30,45 * * * *   False     0        <none>          69s
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods -n suhanya
+NAME            READY   STATUS    RESTARTS   AGE
+kubia-2pd2v     1/1     Running   0          20m
+kubia-s8cb2     1/1     Running   0          24m
+kubia-sh4rl     1/1     Running   0          25m
+kubia2-d6fkh    1/1     Running   0          44m
+kubia2-p7g5p    1/1     Running   0          44m
+kubia2-vtlkx    1/1     Running   0          44m
+mavenir-8llzt   1/1     Running   0          43m
+mavenir-ctfcp   1/1     Running   0          4h59m
+mavenir-ndxk2   1/1     Running   0          4h59m
+[root@ip-172-31-21-197 04-controllers]#
+[root@ip-172-31-21-197 04-controllers]# kubectl get cronjob batch-job-every-fifteen-minutes
+NAME                              SCHEDULE             SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+batch-job-every-fifteen-minutes   0,15,30,45 * * * *   False     0        <none>          2m55s
+[root@ip-172-31-21-197 04-controllers]#
+[root@ip-172-31-21-197 04-controllers]#
+[root@ip-172-31-21-197 04-controllers]# kubectl get cronjob batch-job-every-fifteen-minutes
+NAME                              SCHEDULE             SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+batch-job-every-fifteen-minutes   0,15,30,45 * * * *   False     1        26s             9m21s
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods -n suhanya -owide
+NAME                                               READY   STATUS    RESTARTS   AGE    IP               NODE                                               NOMINATED NODE   READINESS GATES
+batch-job-every-fifteen-minutes-1652725800-fgr5n   1/1     Running   0          34s    192.168.46.103   ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia-2pd2v                                        1/1     Running   0          27m    192.168.46.102   ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia-s8cb2                                        1/1     Running   0          32m    192.168.46.101   ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia-sh4rl                                        1/1     Running   0          32m    192.168.46.99    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia2-d6fkh                                       1/1     Running   0          52m    192.168.46.87    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia2-p7g5p                                       1/1     Running   0          52m    192.168.46.89    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia2-vtlkx                                       1/1     Running   0          52m    192.168.46.88    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+mavenir-8llzt                                      1/1     Running   0          50m    192.168.46.90    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+mavenir-ctfcp                                      1/1     Running   0          5h6m   192.168.46.85    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+mavenir-ndxk2                                      1/1     Running   0          5h6m   192.168.46.86    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods -n suhanya -owide
+NAME                                               READY   STATUS    RESTARTS   AGE    IP               NODE                                               NOMINATED NODE   READINESS GATES
+batch-job-every-fifteen-minutes-1652725800-fgr5n   1/1     Running   0          39s    192.168.46.103   ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia-2pd2v                                        1/1     Running   0          27m    192.168.46.102   ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia-s8cb2                                        1/1     Running   0          32m    192.168.46.101   ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia-sh4rl                                        1/1     Running   0          32m    192.168.46.99    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia2-d6fkh                                       1/1     Running   0          52m    192.168.46.87    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia2-p7g5p                                       1/1     Running   0          52m    192.168.46.89    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+kubia2-vtlkx                                       1/1     Running   0          52m    192.168.46.88    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+mavenir-8llzt                                      1/1     Running   0          50m    192.168.46.90    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+mavenir-ctfcp                                      1/1     Running   0          5h6m   192.168.46.85    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+mavenir-ndxk2                                      1/1     Running   0          5h6m   192.168.46.86    ip-172-31-21-197.ap-southeast-1.compute.internal   <none>           <none>
+[root@ip-172-31-21-197 04-controllers]# kubectl get cronjob batch-job-every-fifteen-minutes
+NAME                              SCHEDULE             SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+batch-job-every-fifteen-minutes   0,15,30,45 * * * *   False     1        54s             9m49s
+[root@ip-172-31-21-197 04-controllers]#  kubectl describe pod batch-job-every-fifteen-minutes-1652725800-fgr5n
+Name:         batch-job-every-fifteen-minutes-1652725800-fgr5n
+Namespace:    suhanya
+Priority:     0
+Node:         ip-172-31-21-197.ap-southeast-1.compute.internal/172.31.21.197
+Start Time:   Mon, 16 May 2022 18:30:06 +0000
+Labels:       app=periodic-batch-job
+              controller-uid=5df350e2-694e-4591-88c0-d2673bd03e80
+              job-name=batch-job-every-fifteen-minutes-1652725800
+Annotations:  <none>
+Status:       Running
+IP:           192.168.46.103
+IPs:
+  IP:           192.168.46.103
+Controlled By:  Job/batch-job-every-fifteen-minutes-1652725800
+Containers:
+  main:
+    Container ID:   docker://b70c135e1b9e11d349aff5f6e5fec9b33f7bab448962a54f16f43f5e6c60b57e
+    Image:          luksa/batch-job
+    Image ID:       docker-pullable://luksa/batch-job@sha256:572a3eba91f3349063f7eb00c03cdb5e1b8f50ca88b8cdf30df8ae218564055b
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Mon, 16 May 2022 18:30:10 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-nkx27 (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-nkx27:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-nkx27
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age   From                                                       Message
+  ----    ------     ----  ----                                                       -------
+  Normal  Scheduled  63s   default-scheduler                                          Successfully assigned suhanya/batch-job-every-fifteen-minutes-1652725800-fgr5n to ip-172-31-21-197.ap-southeast-1.compute.internal
+  Normal  Pulling    62s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Pulling image "luksa/batch-job"
+  Normal  Pulled     59s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Successfully pulled image "luksa/batch-job"
+  Normal  Created    59s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Created container main
+  Normal  Started    59s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Started container main
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME                                               READY   STATUS    RESTARTS   AGE
+batch-job-every-fifteen-minutes-1652725800-fgr5n   1/1     Running   0          82s
+kubia-2pd2v                                        1/1     Running   0          28m
+kubia-s8cb2                                        1/1     Running   0          32m
+kubia-sh4rl                                        1/1     Running   0          33m
+kubia2-d6fkh                                       1/1     Running   0          52m
+kubia2-p7g5p                                       1/1     Running   0          52m
+kubia2-vtlkx                                       1/1     Running   0          52m
+mavenir-8llzt                                      1/1     Running   0          51m
+mavenir-ctfcp                                      1/1     Running   0          5h7m
+mavenir-ndxk2                                      1/1     Running   0          5h7m
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME                                               READY   STATUS    RESTARTS   AGE
+batch-job-every-fifteen-minutes-1652725800-fgr5n   1/1     Running   0          84s
+kubia-2pd2v                                        1/1     Running   0          28m
+kubia-s8cb2                                        1/1     Running   0          32m
+kubia-sh4rl                                        1/1     Running   0          33m
+kubia2-d6fkh                                       1/1     Running   0          53m
+kubia2-p7g5p                                       1/1     Running   0          53m
+kubia2-vtlkx                                       1/1     Running   0          53m
+mavenir-8llzt                                      1/1     Running   0          51m
+mavenir-ctfcp                                      1/1     Running   0          5h7m
+mavenir-ndxk2                                      1/1     Running   0          5h7m
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME                                               READY   STATUS    RESTARTS   AGE
+batch-job-every-fifteen-minutes-1652725800-fgr5n   1/1     Running   0          95s
+kubia-2pd2v                                        1/1     Running   0          28m
+kubia-s8cb2                                        1/1     Running   0          33m
+kubia-sh4rl                                        1/1     Running   0          33m
+kubia2-d6fkh                                       1/1     Running   0          53m
+kubia2-p7g5p                                       1/1     Running   0          53m
+kubia2-vtlkx                                       1/1     Running   0          53m
+mavenir-8llzt                                      1/1     Running   0          51m
+mavenir-ctfcp                                      1/1     Running   0          5h7m
+mavenir-ndxk2                                      1/1     Running   0          5h7m
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME                                               READY   STATUS    RESTARTS   AGE
+batch-job-every-fifteen-minutes-1652725800-fgr5n   1/1     Running   0          112s
+kubia-2pd2v                                        1/1     Running   0          28m
+kubia-s8cb2                                        1/1     Running   0          33m
+kubia-sh4rl                                        1/1     Running   0          33m
+kubia2-d6fkh                                       1/1     Running   0          53m
+kubia2-p7g5p                                       1/1     Running   0          53m
+kubia2-vtlkx                                       1/1     Running   0          53m
+mavenir-8llzt                                      1/1     Running   0          52m
+mavenir-ctfcp                                      1/1     Running   0          5h7m
+mavenir-ndxk2                                      1/1     Running   0          5h7m
+[root@ip-172-31-21-197 04-controllers]#
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME                                               READY   STATUS      RESTARTS   AGE
+batch-job-every-fifteen-minutes-1652725800-fgr5n   0/1     Completed   0          2m27s
+kubia-2pd2v                                        1/1     Running     0          29m
+kubia-s8cb2                                        1/1     Running     0          33m
+kubia-sh4rl                                        1/1     Running     0          34m
+kubia2-d6fkh                                       1/1     Running     0          54m
+kubia2-p7g5p                                       1/1     Running     0          54m
+kubia2-vtlkx                                       1/1     Running     0          54m
+mavenir-8llzt                                      1/1     Running     0          52m
+mavenir-ctfcp                                      1/1     Running     0          5h8m
+mavenir-ndxk2                                      1/1     Running     0          5h8m
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME                                               READY   STATUS      RESTARTS   AGE
+batch-job-every-fifteen-minutes-1652725800-fgr5n   0/1     Completed   0          2m33s
+kubia-2pd2v                                        1/1     Running     0          29m
+kubia-s8cb2                                        1/1     Running     0          34m
+kubia-sh4rl                                        1/1     Running     0          34m
+kubia2-d6fkh                                       1/1     Running     0          54m
+kubia2-p7g5p                                       1/1     Running     0          54m
+kubia2-vtlkx                                       1/1     Running     0          54m
+mavenir-8llzt                                      1/1     Running     0          52m
+mavenir-ctfcp                                      1/1     Running     0          5h8m
+mavenir-ndxk2                                      1/1     Running     0          5h8m
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME                                               READY   STATUS      RESTARTS   AGE
+batch-job-every-fifteen-minutes-1652725800-fgr5n   0/1     Completed   0          4m20s
+kubia-2pd2v                                        1/1     Running     0          31m
+kubia-s8cb2                                        1/1     Running     0          35m
+kubia-sh4rl                                        1/1     Running     0          36m
+kubia2-d6fkh                                       1/1     Running     0          55m
+kubia2-p7g5p                                       1/1     Running     0          55m
+kubia2-vtlkx                                       1/1     Running     0          55m
+mavenir-8llzt                                      1/1     Running     0          54m
+mavenir-ctfcp                                      1/1     Running     0          5h10m
+mavenir-ndxk2                                      1/1     Running     0          5h10m
+[root@ip-172-31-21-197 04-controllers]# kubectl delete cronjob batch-job-every-fifteen-minutes
+cronjob.batch "batch-job-every-fifteen-minutes" deleted
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME            READY   STATUS    RESTARTS   AGE
+kubia-2pd2v     1/1     Running   0          31m
+kubia-s8cb2     1/1     Running   0          36m
+kubia-sh4rl     1/1     Running   0          36m
+kubia2-d6fkh    1/1     Running   0          56m
+kubia2-p7g5p    1/1     Running   0          56m
+kubia2-vtlkx    1/1     Running   0          56m
+mavenir-8llzt   1/1     Running   0          54m
+mavenir-ctfcp   1/1     Running   0          5h10m
+mavenir-ndxk2   1/1     Running   0          5h10m
+[root@ip-172-31-21-197 04-controllers]#
+
+############################################################################################################################################
+
+############################################################################################################################################
+
+4- Find out what is the command to "get" the running jobs.
+
+[root@ip-172-31-21-197 04-controllers]# kubectl get cronjob batch-job-every-fifteen-minutes
+NAME                              SCHEDULE             SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+batch-job-every-fifteen-minutes   0,15,30,45 * * * *   False     1        54s             9m49s
+[root@ip-172-31-21-197 04-controllers]#  kubectl describe pod batch-job-every-fifteen-minutes-1652725800-fgr5n
+Name:         batch-job-every-fifteen-minutes-1652725800-fgr5n
+Namespace:    suhanya
+Priority:     0
+Node:         ip-172-31-21-197.ap-southeast-1.compute.internal/172.31.21.197
+Start Time:   Mon, 16 May 2022 18:30:06 +0000
+Labels:       app=periodic-batch-job
+              controller-uid=5df350e2-694e-4591-88c0-d2673bd03e80
+              job-name=batch-job-every-fifteen-minutes-1652725800
+Annotations:  <none>
+Status:       Running
+IP:           192.168.46.103
+IPs:
+  IP:           192.168.46.103
+Controlled By:  Job/batch-job-every-fifteen-minutes-1652725800
+Containers:
+  main:
+    Container ID:   docker://b70c135e1b9e11d349aff5f6e5fec9b33f7bab448962a54f16f43f5e6c60b57e
+    Image:          luksa/batch-job
+    Image ID:       docker-pullable://luksa/batch-job@sha256:572a3eba91f3349063f7eb00c03cdb5e1b8f50ca88b8cdf30df8ae218564055b
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Mon, 16 May 2022 18:30:10 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-nkx27 (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-nkx27:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-nkx27
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age   From                                                       Message
+  ----    ------     ----  ----                                                       -------
+  Normal  Scheduled  63s   default-scheduler                                          Successfully assigned suhanya/batch-job-every-fifteen-minutes-1652725800-fgr5n to ip-172-31-21-197.ap-southeast-1.compute.internal
+  Normal  Pulling    62s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Pulling image "luksa/batch-job"
+  Normal  Pulled     59s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Successfully pulled image "luksa/batch-job"
+  Normal  Created    59s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Created container main
+  Normal  Started    59s   kubelet, ip-172-31-21-197.ap-southeast-1.compute.internal  Started container main
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME                                               READY   STATUS    RESTARTS   AGE
+batch-job-every-fifteen-minutes-1652725800-fgr5n   1/1     Running   0          112s
+kubia-2pd2v                                        1/1     Running   0          28m
+kubia-s8cb2                                        1/1     Running   0          33m
+kubia-sh4rl                                        1/1     Running   0          33m
+kubia2-d6fkh                                       1/1     Running   0          53m
+kubia2-p7g5p                                       1/1     Running   0          53m
+kubia2-vtlkx                                       1/1     Running   0          53m
+mavenir-8llzt                                      1/1     Running   0          52m
+mavenir-ctfcp                                      1/1     Running   0          5h7m
+mavenir-ndxk2                                      1/1     Running   0          5h7m
+[root@ip-172-31-21-197 04-controllers]#
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME                                               READY   STATUS      RESTARTS   AGE
+batch-job-every-fifteen-minutes-1652725800-fgr5n   0/1     Completed   0          2m33s
+kubia-2pd2v                                        1/1     Running     0          29m
+kubia-s8cb2                                        1/1     Running     0          34m
+kubia-sh4rl                                        1/1     Running     0          34m
+kubia2-d6fkh                                       1/1     Running     0          54m
+kubia2-p7g5p                                       1/1     Running     0          54m
+kubia2-vtlkx                                       1/1     Running     0          54m
+mavenir-8llzt                                      1/1     Running     0          52m
+mavenir-ctfcp                                      1/1     Running     0          5h8m
+mavenir-ndxk2                                      1/1     Running     0          5h8m
+[root@ip-172-31-21-197 04-controllers]# 
+
+############################################################################################################################################
+
+############################################################################################################################################
+
+5- Observe and if possible, paste the results from your practicals.
+
+Observation: Result already pasted.
+
+############################################################################################################################################
+
+############################################################################################################################################
+
+6- Also identify how you would "permanently arrest" the jobs from running.
+
+Observation: Permanently arrest.
+
+[root@ip-172-31-21-197 04-controllers]# kubectl delete cronjob batch-job-every-fifteen-minutes
+cronjob.batch "batch-job-every-fifteen-minutes" deleted
+[root@ip-172-31-21-197 04-controllers]# kubectl get pods
+NAME            READY   STATUS    RESTARTS   AGE
+kubia-2pd2v     1/1     Running   0          31m
+kubia-s8cb2     1/1     Running   0          36m
+kubia-sh4rl     1/1     Running   0          36m
+kubia2-d6fkh    1/1     Running   0          56m
+kubia2-p7g5p    1/1     Running   0          56m
+kubia2-vtlkx    1/1     Running   0          56m
+mavenir-8llzt   1/1     Running   0          54m
+mavenir-ctfcp   1/1     Running   0          5h10m
+mavenir-ndxk2   1/1     Running   0          5h10m
+[root@ip-172-31-21-197 04-controllers]#
+											 
+############################################################################################################################################
+
+############################################################################################################################################
+
+7- What is the change from normal Jobs (jobs v/s cronJobs) - Your observation in one sentence.
+
+Observation: 
+Normal job file use to trigger the pod at the same time and kept it running till it was not deleted. While cronJob file use to trigger the pod at the specific time ( example in above result pod is triggering after every 15 mins).
+
+############################################################################################################################################
