@@ -1,0 +1,80 @@
+VOTING APP ASSIGNMENT
+
+Observation:
+
+1- When we run kubectl apply -f . command, db, vote, result and redis services are created.
+
+[root@ip-172-31-21-197 k8s-specifications]#  kubectl apply -f .
+deployment.apps/db created
+service/db created
+deployment.apps/redis created
+service/redis created
+deployment.apps/result created
+service/result created
+deployment.apps/vote created
+service/vote created
+deployment.apps/worker created
+[root@ip-172-31-21-197 k8s-specifications]# kubectl get deployment
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+db                 1/1     1            1           12s
+kubia              1/1     1            1           89m
+mavenir-mysql      0/1     1            0           2d5h
+mysql-1653043237   0/1     1            0           2d5h
+redis              1/1     1            1           12s
+result             1/1     1            1           12s
+vote               1/1     1            1           12s
+worker             1/1     1            1           12s
+[root@ip-172-31-21-197 k8s-specifications]# kubectl get service
+NAME               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+db                 ClusterIP   10.97.128.176    <none>        5432/TCP         19s
+kubia              ClusterIP   10.98.6.107      <none>        80/TCP           90m
+mavenir-mysql      ClusterIP   10.99.73.78      <none>        3306/TCP         2d5h
+mysql-1653043237   ClusterIP   10.111.102.25    <none>        3306/TCP         2d5h
+redis              ClusterIP   10.108.170.145   <none>        6379/TCP         19s
+result             NodePort    10.109.115.1     <none>        5001:31001/TCP   19s
+vote               NodePort    10.102.150.67    <none>        5000:31000/TCP   19s
+[root@ip-172-31-21-197 k8s-specifications]#
+
+
+2- When we Open the result and vote app in two browser. And did the voting, the result get updated accordingly.
+
+3- When we delete the pods in  the sequence, vote, result and then db. after vote pod deletion, result pod was still accessible.
+but when db pod is deleted complete result was deleted and it stop working but still result was accessible.
+
+4- When we delete the db pod, result were not able to capture as result pod stopped working.
+
+5- When we deleted the db pod and now to bring up the result pod working, we need to re-deployed the db pod. After which result pod start working and start capturing the result but from start as it lost the old result.
+
+  1- [root@ip-172-31-21-197 k8s-specifications]#  kubectl apply -f db-deployment.yaml
+deployment.apps/db created
+[root@ip-172-31-21-197 k8s-specifications]#  kubectl apply -f db-service.yaml
+service/db created
+ 
+6- WHY result app STOPPED working after db pod stop:
+
+When we delete the db pod, as t he result use to access the db pod to access the result, and when db is deleted and there is not result so when we tried to reach the db to access the result.
+
+7- HOW YOU MADE THE RESULT POD work:   
+
+When we deleted the db pod and now to bring up the result pod working, we need to re-deployed the db pod. After which result pod start working and start capturing the result but from start as it lost the old result.
+
+  1- [root@ip-172-31-21-197 k8s-specifications]#  kubectl apply -f db-deployment.yaml
+deployment.apps/db created
+[root@ip-172-31-21-197 k8s-specifications]#  kubectl apply -f db-service.yaml
+service/db created
+
+Some jargons:
+
+Starting form the training:
+
+1- Docker,
+2- Container
+3- kubectl
+4- k8s
+5- service
+6- deployment
+7- pods
+8- yaml file
+9- config Map
+
+Important Note: Very important training and good learning.
