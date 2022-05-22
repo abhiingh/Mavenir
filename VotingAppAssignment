@@ -2,6 +2,11 @@ VOTING APP ASSIGNMENT
 
 Observation:
 
+Below are the steps performed during Voting App deployment and accessing the result.
+
+
+#############################################################################################################
+
 1- When we run kubectl apply -f . command, db, vote, result and redis services are created.
 
 [root@ip-172-31-21-197 k8s-specifications]#  kubectl apply -f .
@@ -35,14 +40,25 @@ result             NodePort    10.109.115.1     <none>        5001:31001/TCP   1
 vote               NodePort    10.102.150.67    <none>        5000:31000/TCP   19s
 [root@ip-172-31-21-197 k8s-specifications]#
 
+#############################################################################################################
 
+#############################################################################################################
 2- When we Open the result and vote app in two browser. And did the voting, the result get updated accordingly.
 
+#############################################################################################################
+
+#############################################################################################################
 3- When we delete the pods in  the sequence, vote, result and then db. after vote pod deletion, result pod was still accessible.
 but when db pod is deleted complete result was deleted and it stop working but still result was accessible.
 
+#############################################################################################################
+
+#############################################################################################################
 4- When we delete the db pod, result were not able to capture as result pod stopped working.
 
+#############################################################################################################
+
+#############################################################################################################
 5- When we deleted the db pod and now to bring up the result pod working, we need to re-deployed the db pod. After which result pod start working and start capturing the result but from start as it lost the old result.
 
   1- [root@ip-172-31-21-197 k8s-specifications]#  kubectl apply -f db-deployment.yaml
@@ -50,10 +66,16 @@ deployment.apps/db created
 [root@ip-172-31-21-197 k8s-specifications]#  kubectl apply -f db-service.yaml
 service/db created
  
+#############################################################################################################
+
+#############################################################################################################
 6- WHY result app STOPPED working after db pod stop:
 
 When we delete the db pod, as t he result use to access the db pod to access the result, and when db is deleted and there is not result so when we tried to reach the db to access the result.
 
+#############################################################################################################
+
+#############################################################################################################
 7- HOW YOU MADE THE RESULT POD work:   
 
 When we deleted the db pod and now to bring up the result pod working, we need to re-deployed the db pod. After which result pod start working and start capturing the result but from start as it lost the old result.
@@ -63,6 +85,9 @@ deployment.apps/db created
 [root@ip-172-31-21-197 k8s-specifications]#  kubectl apply -f db-service.yaml
 service/db created
 
+#############################################################################################################
+
+#############################################################################################################
 Some jargons:
 
 Starting form the training:
@@ -78,3 +103,5 @@ Starting form the training:
 9- config Map
 
 Important Note: Very important training and good learning.
+
+#############################################################################################################
