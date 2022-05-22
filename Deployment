@@ -1,6 +1,10 @@
 Suppose you have deployed your application using a deployment controller. Assume the initial number of replicas is one. Write the steps needed to update a container's image using deployment, making sure that there is zero downtime.
 
 Observation:
+Below are the steps to update the container image without zero downtime.
+
+
+#############################################################################################################
 
 deployment.yaml file content.
 
@@ -28,6 +32,12 @@ spec:
         ports:
         - containerPort: 80
 		
+
+#############################################################################################################
+
+
+#############################################################################################################
+
 Create the Deployment by running the following command:
 		
 kubectl apply -f deployment.yaml
@@ -36,6 +46,12 @@ Run the kubectl get deployments a few seconds later. The output is similar to th
 
 NAME               READY   UP-TO-DATE   AVAILABLE   AGE
 nginx-deployment   1/1     1            1           18s
+
+
+#############################################################################################################
+
+
+#############################################################################################################
 
 Steps to update the container's image using deployment
 
@@ -63,3 +79,5 @@ Pod Template:
     nginx:
       Image:        nginx:1.16.1
       Port:         80/TCP
+
+#############################################################################################################
